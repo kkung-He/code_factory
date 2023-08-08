@@ -75,6 +75,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
+                    /// 임의로..
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => RootTab(),
+                      ),
+                    );
+
                     // ID:비밀번호
                     final rawString = '$username:$password';
 
