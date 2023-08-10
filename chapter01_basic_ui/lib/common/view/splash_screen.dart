@@ -3,6 +3,7 @@ import 'package:chapter01_basic_ui/common/const/data.dart';
 import 'package:chapter01_basic_ui/common/layout/default_layout.dart';
 import 'package:chapter01_basic_ui/common/view/root_tab.dart';
 import 'package:chapter01_basic_ui/user/view/login_screen.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -29,20 +30,32 @@ class _SplashScreenState extends State<SplashScreen> {
     final refreshToken = await storage.read(key: REFRESH_TOKEN_KEY);
     final accessToken = await storage.read(key: ACCESS_TOKEN_KEY);
 
-    if (refreshToken == null || accessToken == null) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (_) => LoginScreen(),
-        ),
-        (route) => false,
+    final dio = Dio();
+
+    try{
+      // accessToken 발급 (refreshToken : 5min, accessToken: 24h 유효)
+      final resp = await dio.post(
+        'http://$ip/auth/token',
+        options: Options(headers: {
+          'authorization': 'Bearer $refreshToken',
+        }),
       );
-    } else {
-      //둘다 있다면
+      // 앱 재실행할때마다 토큰이 갱신된걸 저장
+      await storage.write(key: ACCESS_TOKEN_KEY, value: resp.data['accessToken']);
+
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (_) => RootTab(),
         ),
-        (route) => false,
+            (route) => false,
+      );
+
+    }catch(e){
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => LoginScreen(),
+        ),
+            (route) => false,
       );
     }
   }
