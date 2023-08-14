@@ -1,5 +1,7 @@
 import 'package:chapter01_basic_ui/common/const/data.dart';
+import 'package:chapter01_basic_ui/restaurant/model/restaurant_model.dart';
 import 'package:chapter01_basic_ui/restaurant/component/restaurant_card.dart';
+import 'package:chapter01_basic_ui/restaurant/view/restaurant_detail_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
@@ -33,28 +35,49 @@ class RestaurantScreen extends StatelessWidget {
               future: paginateRestaurant(),
               builder: (context, AsyncSnapshot<List> snapshot) {
                 if (!snapshot.hasData) {
-                  return Container();
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
                 }
 
                 return ListView.separated(
                   itemCount: snapshot.data!.length,
-                  itemBuilder: (_, index){
+                  itemBuilder: (_, index) {
                     final item = snapshot.data![index];
-                    return RestaurantCard(
-                      image: Image.network(
-                        'http://$ip${item['thumbUrl']}',
-                        fit: BoxFit.cover,
+                    // parsed : 변환됐다.
+                    final pItem = RestaurantModel.fromJson(json: item);
+                    // final pItem = RestaurantModel(
+                    //   id: item['id'],
+                    //   name: item['name'],
+                    //   thumbUrl: 'http://$ip${item['thumbUrl']}',
+                    //   tags: List<String>.from(item['tags']),
+                    //   priceRange: RestaruntPriceRange.values.firstWhere((e) =>
+                    //   e.name == item['priceRange'],
+                    //   ),
+                    //   ratings: item['ratings'],
+                    //   ratingsCount: item['ratingsCount'],
+                    //   deliveryTime: item['deliveryTime'],
+                    //   deliveryFee: item['deliveryFee'],
+                    // );
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => RestaurantDetailScreen(
+                              id: pItem.id,
+                            ),
+                          ),
+                        );
+                      },
+                      child: RestaurantCard.fromRestaurantModel(
+                        model: pItem,
                       ),
-                      name: item['name'],
-                      tags: List<String>.from(item['tags']),
-                      ratingsCount: item['ratingsCount'],
-                      deliveryTime: item['deliveryTime'],
-                      deliveryFee: item['deliveryFee'],
-                      ratings: item['ratings'],
                     );
                   },
-                  separatorBuilder: (_, index){
-                    return SizedBox(height: 10.0,);
+                  separatorBuilder: (_, index) {
+                    return SizedBox(
+                      height: 10.0,
+                    );
                   },
                 );
               },
